@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import random
+from PIL import Image, ImageTk
 
 class Aspiradora:
     def __init__(self, ventana_principal):
@@ -8,19 +9,24 @@ class Aspiradora:
         self.ventana_principal.title("Simulación de Aspiradora")
         self.ventana_principal.geometry("600x400")
         
+        image = Image.open("aspi.png")  # Cargar la imagen de la aspiradora
+        image = image.resize((50, 50), Image.LANCZOS)  # Redimensiona al tamaño del cuadro
+        self.aspiradora_img = ImageTk.PhotoImage(image)
+        
+        image_basura = Image.open("trashi.png")  # Cargar la imagen de la aspiradora
+        image_basura= image_basura.resize((30, 30), Image.LANCZOS)  # Redimensiona al tamaño del cuadro
+        self.trashi_img = ImageTk.PhotoImage(image_basura)
+        
         self.crear_interfaz()
         self.boton_limpieza_creado = False  # Variable de control para evitar duplicar el botón
-    
+        
     def crear_interfaz(self):
-        # Marco para la cuadrícula
         self.marco_izquierdo = tk.Frame(self.ventana_principal, bg="white")
         self.marco_izquierdo.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        # Marco para los controles
         self.marco_derecho = tk.Frame(self.ventana_principal, bg="#f0f0f0")
         self.marco_derecho.pack(side=tk.RIGHT, fill=tk.Y, padx=10, pady=10)
         
-        # Etiquetas y entradas para las dimensiones y posición de la aspiradora
         tk.Label(self.marco_derecho, text="Largo (1-10):", bg="#f0f0f0").pack(pady=5)
         self.entrada_largo = tk.Entry(self.marco_derecho)
         self.entrada_largo.pack(pady=5)
@@ -37,10 +43,7 @@ class Aspiradora:
         self.entrada_columna = tk.Entry(self.marco_derecho)
         self.entrada_columna.pack(pady=5)
         
-        # Botón para iniciar la simulación
         tk.Button(self.marco_derecho, text="Iniciar Simulación", command=self.iniciar_simulacion, bg="#4CAF50", fg="white").pack(pady=10)
-        
-        # Etiqueta para mensajes
         self.etiqueta_mensaje = tk.Label(self.marco_derecho, text="", bg="#f0f0f0", fg="red")
         self.etiqueta_mensaje.pack(pady=5)
     
@@ -78,21 +81,23 @@ class Aspiradora:
         
         self.dibujar_cuadricula()
         
-        if not self.boton_limpieza_creado:  # Solo crear el botón si no ha sido creado antes
+        if not self.boton_limpieza_creado:
             tk.Button(self.marco_derecho, text="Empezar Limpieza", command=self.limpiar_adyacentes, bg="#008CBA", fg="white").pack(pady=10)
-            self.boton_limpieza_creado = True  # Marcar que el botón fue creado
+            self.boton_limpieza_creado = True
     
     def dibujar_cuadricula(self):
         self.lienzo.delete("all")
         for fila in range(self.filas):
             for columna in range(self.columnas):
-                color = "white"
-                if (fila, columna) == (self.fila_aspiradora, self.columna_aspiradora):
-                    color = "blue"  # Aspiradora
-                elif self.cuadricula[fila][columna] == 1:
-                    color = "red"  # Suciedad
+                x1, y1 = columna * 50, fila * 50
+                x2, y2 = (columna + 1) * 50, (fila + 1) * 50
                 
-                self.lienzo.create_rectangle(columna * 50, fila * 50, (columna + 1) * 50, (fila + 1) * 50, fill=color, outline="black")
+                if (fila, columna) == (self.fila_aspiradora, self.columna_aspiradora):
+                    self.lienzo.create_image(x1 + 25, y1 + 25, image=self.aspiradora_img)
+                elif self.cuadricula[fila][columna] == 1:
+                    self.lienzo.create_image(x1 + 25, y1 + 25, image=self.trashi_img)
+                else:
+                    self.lienzo.create_rectangle(x1, y1, x2, y2, fill="white", outline="black")
     
     def limpiar_adyacentes(self):
         direcciones = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
