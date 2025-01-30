@@ -1,105 +1,113 @@
 import tkinter as tk
+from tkinter import messagebox
 import random
 
-class VacuumCleaner:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Simulación de Aspiradora")
+class Aspiradora:
+    def __init__(self, ventana_principal):
+        self.ventana_principal = ventana_principal
+        self.ventana_principal.title("Simulación de Aspiradora")
+        self.ventana_principal.geometry("600x400")
         
-        self.create_ui()
-        self.clean_button_created = False  # Variable de control para evitar duplicar el botón
+        self.crear_interfaz()
+        self.boton_limpieza_creado = False  # Variable de control para evitar duplicar el botón
     
-    def create_ui(self):
-        self.frame_left = tk.Frame(self.root)
-        self.frame_left.pack(side=tk.LEFT)
+    def crear_interfaz(self):
+        # Marco para la cuadrícula
+        self.marco_izquierdo = tk.Frame(self.ventana_principal, bg="white")
+        self.marco_izquierdo.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        self.frame_right = tk.Frame(self.root)
-        self.frame_right.pack(side=tk.RIGHT, padx=10)
+        # Marco para los controles
+        self.marco_derecho = tk.Frame(self.ventana_principal, bg="#f0f0f0")
+        self.marco_derecho.pack(side=tk.RIGHT, fill=tk.Y, padx=10, pady=10)
         
-        tk.Label(self.frame_right, text="Largo (1-10):").pack()
-        self.entry_largo = tk.Entry(self.frame_right)
-        self.entry_largo.pack()
+        # Etiquetas y entradas para las dimensiones y posición de la aspiradora
+        tk.Label(self.marco_derecho, text="Largo (1-10):", bg="#f0f0f0").pack(pady=5)
+        self.entrada_largo = tk.Entry(self.marco_derecho)
+        self.entrada_largo.pack(pady=5)
         
-        tk.Label(self.frame_right, text="Ancho (1-10):").pack()
-        self.entry_ancho = tk.Entry(self.frame_right)
-        self.entry_ancho.pack()
+        tk.Label(self.marco_derecho, text="Ancho (1-10):", bg="#f0f0f0").pack(pady=5)
+        self.entrada_ancho = tk.Entry(self.marco_derecho)
+        self.entrada_ancho.pack(pady=5)
         
-        tk.Label(self.frame_right, text="Fila Aspiradora:").pack()
-        self.entry_x = tk.Entry(self.frame_right)
-        self.entry_x.pack()
+        tk.Label(self.marco_derecho, text="Fila Aspiradora:", bg="#f0f0f0").pack(pady=5)
+        self.entrada_fila = tk.Entry(self.marco_derecho)
+        self.entrada_fila.pack(pady=5)
         
-        tk.Label(self.frame_right, text="Columna Aspiradora:").pack()
-        self.entry_y = tk.Entry(self.frame_right)
-        self.entry_y.pack()
+        tk.Label(self.marco_derecho, text="Columna Aspiradora:", bg="#f0f0f0").pack(pady=5)
+        self.entrada_columna = tk.Entry(self.marco_derecho)
+        self.entrada_columna.pack(pady=5)
         
-        tk.Button(self.frame_right, text="Iniciar", command=self.start_simulation).pack()
-        self.message_label = tk.Label(self.frame_right, text="")
-        self.message_label.pack()
+        # Botón para iniciar la simulación
+        tk.Button(self.marco_derecho, text="Iniciar Simulación", command=self.iniciar_simulacion, bg="#4CAF50", fg="white").pack(pady=10)
+        
+        # Etiqueta para mensajes
+        self.etiqueta_mensaje = tk.Label(self.marco_derecho, text="", bg="#f0f0f0", fg="red")
+        self.etiqueta_mensaje.pack(pady=5)
     
-    def start_simulation(self):
+    def iniciar_simulacion(self):
         try:
-            self.rows = int(self.entry_largo.get())
-            self.cols = int(self.entry_ancho.get())
-            self.vacuum_x = int(self.entry_x.get())
-            self.vacuum_y = int(self.entry_y.get())
+            self.filas = int(self.entrada_largo.get())
+            self.columnas = int(self.entrada_ancho.get())
+            self.fila_aspiradora = int(self.entrada_fila.get())
+            self.columna_aspiradora = int(self.entrada_columna.get())
             
-            if not (1 <= self.rows <= 10 and 1 <= self.cols <= 10):
-                self.message_label.config(text="Tamaño fuera de rango")
+            if not (1 <= self.filas <= 10 and 1 <= self.columnas <= 10):
+                self.etiqueta_mensaje.config(text="Tamaño fuera de rango (1-10)")
                 return
-            if not (0 <= self.vacuum_x < self.rows and 0 <= self.vacuum_y < self.cols):
-                self.message_label.config(text="Posición fuera del área")
+            if not (0 <= self.fila_aspiradora < self.filas and 0 <= self.columna_aspiradora < self.columnas):
+                self.etiqueta_mensaje.config(text="Posición fuera del área")
                 return
             
-            self.create_grid()
+            self.crear_cuadricula()
         except ValueError:
-            self.message_label.config(text="Ingrese valores válidos")
+            self.etiqueta_mensaje.config(text="Ingrese valores válidos")
     
-    def create_grid(self):
-        if hasattr(self, 'canvas'):
-            self.canvas.destroy()
+    def crear_cuadricula(self):
+        if hasattr(self, 'lienzo'):
+            self.lienzo.destroy()
         
-        self.canvas = tk.Canvas(self.frame_left, width=self.cols * 50, height=self.rows * 50)
-        self.canvas.pack()
+        self.lienzo = tk.Canvas(self.marco_izquierdo, width=self.columnas * 50, height=self.filas * 50, bg="white")
+        self.lienzo.pack(pady=10, padx=10)
         
-        self.grid = [[0 for _ in range(self.cols)] for _ in range(self.rows)]
+        self.cuadricula = [[0 for _ in range(self.columnas)] for _ in range(self.filas)]
         
-        for _ in range(random.randint(1, (self.rows * self.cols) // 3)):
-            x, y = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
-            if (x, y) != (self.vacuum_x, self.vacuum_y):
-                self.grid[x][y] = 1  # Casilla sucia
+        for _ in range(random.randint(1, (self.filas * self.columnas) // 3)):
+            fila, columna = random.randint(0, self.filas - 1), random.randint(0, self.columnas - 1)
+            if (fila, columna) != (self.fila_aspiradora, self.columna_aspiradora):
+                self.cuadricula[fila][columna] = 1  # Casilla sucia
         
-        self.draw_grid()
+        self.dibujar_cuadricula()
         
-        if not self.clean_button_created:  # Solo crear el botón si no ha sido creado antes
-            tk.Button(self.frame_right, text="Empezar limpieza", command=self.clean_adjacent).pack()
-            self.clean_button_created = True  # Marcar que el botón fue creado
+        if not self.boton_limpieza_creado:  # Solo crear el botón si no ha sido creado antes
+            tk.Button(self.marco_derecho, text="Empezar Limpieza", command=self.limpiar_adyacentes, bg="#008CBA", fg="white").pack(pady=10)
+            self.boton_limpieza_creado = True  # Marcar que el botón fue creado
     
-    def draw_grid(self):
-        self.canvas.delete("all")
-        for i in range(self.rows):
-            for j in range(self.cols):
+    def dibujar_cuadricula(self):
+        self.lienzo.delete("all")
+        for fila in range(self.filas):
+            for columna in range(self.columnas):
                 color = "white"
-                if (i, j) == (self.vacuum_x, self.vacuum_y):
+                if (fila, columna) == (self.fila_aspiradora, self.columna_aspiradora):
                     color = "blue"  # Aspiradora
-                elif self.grid[i][j] == 1:
+                elif self.cuadricula[fila][columna] == 1:
                     color = "red"  # Suciedad
                 
-                self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill=color, outline="black")
+                self.lienzo.create_rectangle(columna * 50, fila * 50, (columna + 1) * 50, (fila + 1) * 50, fill=color, outline="black")
     
-    def clean_adjacent(self):
-        directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
-        cleaned = []
+    def limpiar_adyacentes(self):
+        direcciones = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+        casillas_limpiadas = []
         
-        for dx, dy in directions:
-            nx, ny = self.vacuum_x + dx, self.vacuum_y + dy
-            if 0 <= nx < self.rows and 0 <= ny < self.cols and self.grid[nx][ny] == 1:
-                self.grid[nx][ny] = 0  # Limpiar
-                cleaned.append((nx, ny))
+        for dx, dy in direcciones:
+            nueva_fila, nueva_columna = self.fila_aspiradora + dx, self.columna_aspiradora + dy
+            if 0 <= nueva_fila < self.filas and 0 <= nueva_columna < self.columnas and self.cuadricula[nueva_fila][nueva_columna] == 1:
+                self.cuadricula[nueva_fila][nueva_columna] = 0  # Limpiar
+                casillas_limpiadas.append((nueva_fila, nueva_columna))
         
-        self.draw_grid()
-        self.message_label.config(text=f"Vecinos limpiados: {cleaned}")
+        self.dibujar_cuadricula()
+        self.etiqueta_mensaje.config(text=f"Vecinos limpiados: {casillas_limpiadas}")
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = VacuumCleaner(root)
-    root.mainloop()
+    ventana_principal = tk.Tk()
+    app = Aspiradora(ventana_principal)
+    ventana_principal.mainloop()
