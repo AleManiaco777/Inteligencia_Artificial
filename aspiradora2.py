@@ -8,7 +8,7 @@ class Aspiradora:
         # Fab: Inicializamos la ventana principal y configuramos sus propiedades
         self.ventana_principal = ventana_principal
         self.ventana_principal.title("Simulación de Aspiradora")
-        self.ventana_principal.geometry("600x400")
+        self.ventana_principal.geometry("600x500")
         
         # Ale: Cargamos y redimensionamos las imágenes de la aspiradora y la basura
         image = Image.open("aspi.png")
@@ -51,6 +51,8 @@ class Aspiradora:
         tk.Button(self.marco_derecho, text="Iniciar Simulación", command=self.iniciar_simulacion, bg="#4CAF50", fg="white").pack(pady=10)
         self.etiqueta_mensaje = tk.Label(self.marco_derecho, text="", bg="#f0f0f0", fg="red")
         self.etiqueta_mensaje.pack(pady=5)
+        
+        
     
     def iniciar_simulacion(self):
         try:
@@ -93,6 +95,32 @@ class Aspiradora:
             # Fab: Botón para empezar la limpieza
             tk.Button(self.marco_derecho, text="Empezar Limpieza", command=self.limpiar_adyacentes, bg="#008CBA", fg="white").pack(pady=10)
             self.boton_limpieza_creado = True
+            
+            tk.Button(self.marco_derecho, text="Recolocar la aspiradora", command=self.recolocar_aspiradora, bg="#FF0000", fg="white").pack(pady=10)
+            self.boton_limpieza_creado = True
+    
+    def recolocar_aspiradora(self):
+        try:
+            nueva_fila = int(self.entrada_fila.get())
+            nueva_columna = int(self.entrada_columna.get())
+
+        # Verificamos que las coordenadas sean válidas
+            if not (0 <= nueva_fila < self.filas and 0 <= nueva_columna < self.columnas):
+                self.etiqueta_mensaje.config(text="Posición fuera del área", fg="red")
+                return
+
+            # Actualizamos la posición de la aspiradora
+            self.fila_aspiradora = nueva_fila
+            self.columna_aspiradora = nueva_columna
+
+            # Redibujamos SOLO la aspiradora
+            self.dibujar_cuadricula()
+
+            self.etiqueta_mensaje.config(text=f"Aspiradora movida a ({nueva_fila}, {nueva_columna})", fg="green")
+
+        except ValueError:
+            self.etiqueta_mensaje.config(text="Ingrese valores válidos", fg="red")
+
     
     def dibujar_cuadricula(self):
         self.lienzo.delete("all")
@@ -124,6 +152,8 @@ class Aspiradora:
         self.dibujar_cuadricula()
         # Fab: Mostramos las casillas limpiadas en la etiqueta de mensaje
         self.etiqueta_mensaje.config(text=f"Vecinos limpiados: {casillas_limpiadas}")
+    
+    
 
 if __name__ == "__main__":
     ventana_principal = tk.Tk()
